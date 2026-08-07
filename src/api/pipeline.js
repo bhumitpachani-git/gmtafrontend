@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "https://gmtabackend.vercel.app";
 
 async function postJson(path, body, signal) {
   const res = await fetch(`${BASE_URL}${path}`, {
