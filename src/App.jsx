@@ -31,7 +31,13 @@ function App() {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar currentStep={wizard.currentStep} company={wizard.company} url={url} />
+      <Sidebar
+        currentStep={wizard.currentStep}
+        company={wizard.company}
+        url={url}
+        competitors={wizard.competitors}
+        campaigns={wizard.campaigns}
+      />
 
       <div className="flex-1">
         <StepHeader currentStep={wizard.currentStep} />
