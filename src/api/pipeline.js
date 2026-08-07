@@ -1,4 +1,4 @@
-const BASE_URL = "https://gmtabackend.vercel.app";
+const BASE_URL = "https://gmtabackend.onrender.com";
 
 async function postJson(path, body, signal) {
   const res = await fetch(`${BASE_URL}${path}`, {
