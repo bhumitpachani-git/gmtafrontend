@@ -1,4 +1,4 @@
-const BASE_URL = "https://gmtabackend.onrender.com";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 async function postJson(path, body, signal) {
   const res = await fetch(`${BASE_URL}${path}`, {
