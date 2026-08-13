@@ -9,6 +9,7 @@ import {
   startEmails,
   openSessionStream,
 } from "../api/pipeline";
+import { domainOf } from "../utils/url";
 
 const STEP_TITLES = [
   "Research your company",
@@ -23,10 +24,31 @@ const STEP_TITLES = [
 // subset, so each expensive fan-out point (customer search per campaign, a website crawl
 // per customer) needs its own cap — otherwise a run that used to take a couple of minutes
 // with a hand-picked subset can take many times longer processing everything.
-const MAX_CAMPAIGNS = 2;
-const MAX_CUSTOMERS_PER_CAMPAIGN = 5;
+//
+// Every campaign is used (usually only 2-4 exist, and a "local" Maps-based one dropped by
+// an earlier index cap here would silently never get searched at all), at a per-campaign
+// limit generous enough that even 2 campaigns comfortably clears a 20-customer target
+// after deduping — real runs also lose some to dead links/no-website/duplicates.
+const MAX_CUSTOMERS_PER_CAMPAIGN = 12;
+const MIN_CUSTOMERS_TARGET = 20;
 const MAX_CUSTOMERS_FOR_DECISION_MAKERS = 8;
 const MAX_PEOPLE_FOR_EMAILS = 10;
+
+// Same company can legitimately turn up from more than one campaign's search — keep only
+// the first occurrence so "customers" never lists the same business twice.
+function dedupeCustomers(list) {
+  const seen = new Set();
+  const result = [];
+  for (const c of list) {
+    const key = (c.website && domainOf(c.website)) || (c.name && c.name.toLowerCase().trim());
+    if (key) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+    }
+    result.push(c);
+  }
+  return result;
+}
 
 export function useWizard() {
   const [sessionId, setSessionId] = useState(null);
@@ -126,13 +148,26 @@ export function useWizard() {
     setCustomers([]);
     let customersResult;
     try {
-      const campaignIndexes = campaignsResult.slice(0, MAX_CAMPAIGNS).map((_, i) => i);
+      const campaignIndexes = campaignsResult.map((_, i) => i);
       const { jobId } = await startCustomers(sid, {
         campaignIndexes,
         maxPerCampaign: MAX_CUSTOMERS_PER_CAMPAIGN,
       });
-      const result = await pollJob(jobId);
-      customersResult = result.customers;
+      // Processing every campaign at a higher per-campaign limit legitimately runs past
+      // pollJob's default 5-minute budget — a direct timed run through the real backend
+      // (bypassing the frontend entirely) measured 423s for 4 campaigns at this limit,
+      // yielding 48 unique real companies. 300 attempts gives real-world timing variance
+      // headroom above that measured figure; the SSE stream shows real progress the whole
+      // time, so a longer wait here doesn't look frozen.
+      const result = await pollJob(jobId, { maxAttempts: 300 });
+      customersResult = dedupeCustomers(result.customers);
+      if (customersResult.length < MIN_CUSTOMERS_TARGET) {
+        // Real result, just short of the target — surfaced so it's visible this run
+        // came up thin rather than silently looking the same as a full one.
+        console.warn(
+          `Only found ${customersResult.length} unique customers (target: ${MIN_CUSTOMERS_TARGET}) — this business's campaigns may not have enough distinct matches available.`
+        );
+      }
       setCustomers(customersResult);
     } catch (err) {
       setError(err.message);
