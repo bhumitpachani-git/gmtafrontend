@@ -13,9 +13,11 @@ import Step6WriteEmails from "./components/steps/Step6WriteEmails";
 function App() {
   const wizard = useWizard();
   const [url, setUrl] = useState("");
+  const [pickedCompany, setPickedCompany] = useState(null); // name+logo known the instant it's picked, before step 1 finishes
 
-  async function handleStart(submittedUrl) {
+  async function handleStart(submittedUrl, picked) {
     setUrl(submittedUrl);
+    setPickedCompany(picked || null);
     await wizard.runAll(submittedUrl);
   }
 
@@ -29,11 +31,19 @@ function App() {
     );
   }
 
+  // Once step 1's real analysis lands it's the authoritative, fuller profile — until
+  // then, fall back to the name/description already known from picking it off the
+  // search dropdown, so the sidebar shows a logo+name immediately instead of staying
+  // empty through the whole first step.
+  const sidebarCompany =
+    wizard.company ||
+    (pickedCompany && { companyName: pickedCompany.name, whatTheyDo: pickedCompany.description });
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar
         currentStep={wizard.currentStep}
-        company={wizard.company}
+        company={sidebarCompany}
         url={url}
         competitors={wizard.competitors}
         campaigns={wizard.campaigns}

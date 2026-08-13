@@ -62,7 +62,7 @@ export default function Landing({ onSubmit, loading, error }) {
 
   function selectResult(company) {
     setValue(company.website);
-    onSubmit(company.website);
+    onSubmit(company.website, company);
   }
 
   const showDropdown = value.trim().length >= 2 && !loading;
