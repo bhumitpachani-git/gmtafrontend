@@ -18,6 +18,15 @@ const STEP_TITLES = [
   "Write emails",
 ];
 
+// Auto-running now acts on everything the previous step found instead of a user-picked
+// subset, so each expensive fan-out point (customer search per campaign, a website crawl
+// per customer) needs its own cap — otherwise a run that used to take a couple of minutes
+// with a hand-picked subset can take many times longer processing everything.
+const MAX_CAMPAIGNS = 2;
+const MAX_CUSTOMERS_PER_CAMPAIGN = 5;
+const MAX_CUSTOMERS_FOR_DECISION_MAKERS = 8;
+const MAX_PEOPLE_FOR_EMAILS = 10;
+
 export function useWizard() {
   const [sessionId, setSessionId] = useState(null);
   const [currentStep, setCurrentStep] = useState(0); // 0 = landing, 1-6 = steps
@@ -70,10 +79,12 @@ export function useWizard() {
 
     setLoadingStep(3);
     setCurrentStep(3);
+    let campaignsResult;
     try {
       const { jobId } = await startCampaigns(sid);
       const result = await pollJob(jobId);
-      setCampaigns(result.campaigns);
+      campaignsResult = result.campaigns;
+      setCampaigns(campaignsResult);
     } catch (err) {
       setError(err.message);
       setLoadingStep(null);
@@ -83,10 +94,16 @@ export function useWizard() {
 
     setLoadingStep(4);
     setCurrentStep(4);
+    let customersResult;
     try {
-      const { jobId } = await startCustomers(sid);
+      const campaignIndexes = campaignsResult.slice(0, MAX_CAMPAIGNS).map((_, i) => i);
+      const { jobId } = await startCustomers(sid, {
+        campaignIndexes,
+        maxPerCampaign: MAX_CUSTOMERS_PER_CAMPAIGN,
+      });
       const result = await pollJob(jobId);
-      setCustomers(result.customers);
+      customersResult = result.customers;
+      setCustomers(customersResult);
     } catch (err) {
       setError(err.message);
       setLoadingStep(null);
@@ -96,10 +113,17 @@ export function useWizard() {
 
     setLoadingStep(5);
     setCurrentStep(5);
+    let decisionMakersResult;
     try {
-      const { jobId } = await startDecisionMakers(sid);
+      const customerIndexes = customersResult
+        .map((c, i) => ({ c, i }))
+        .filter(({ c }) => c.name && !c.error && c.website)
+        .slice(0, MAX_CUSTOMERS_FOR_DECISION_MAKERS)
+        .map(({ i }) => i);
+      const { jobId } = await startDecisionMakers(sid, { customerIndexes });
       const result = await pollJob(jobId);
-      setDecisionMakers(result.decisionMakers);
+      decisionMakersResult = result.decisionMakers;
+      setDecisionMakers(decisionMakersResult);
     } catch (err) {
       setError(err.message);
       setLoadingStep(null);
@@ -110,7 +134,12 @@ export function useWizard() {
     setLoadingStep(6);
     setCurrentStep(6);
     try {
-      const { jobId } = await startEmails(sid);
+      const personIndexes = decisionMakersResult
+        .map((p, i) => ({ p, i }))
+        .filter(({ p }) => p.personName)
+        .slice(0, MAX_PEOPLE_FOR_EMAILS)
+        .map(({ i }) => i);
+      const { jobId } = await startEmails(sid, { personIndexes });
       const result = await pollJob(jobId);
       setEmails(result.emails);
     } catch (err) {

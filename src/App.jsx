@@ -42,43 +42,45 @@ function App() {
       <div className="flex-1 overflow-y-auto">
         <StepHeader currentStep={wizard.currentStep} />
 
-        {wizard.error && (
+        {wizard.error ? (
           <div className="mx-auto max-w-4xl px-6">
             <div className="rounded-lg border border-negative/40 bg-negative/10 px-4 py-3 text-sm text-negative">
               {wizard.error}
             </div>
           </div>
-        )}
+        ) : (
+          <>
+            {wizard.currentStep === 1 && (
+              <Step1Research url={url} company={wizard.company} loading={wizard.loadingStep === 1} />
+            )}
 
-        {wizard.currentStep === 1 && (
-          <Step1Research url={url} company={wizard.company} loading={wizard.loadingStep === 1} />
-        )}
+            {wizard.currentStep === 2 && (
+              <Step2Competitors
+                company={wizard.company}
+                competitors={wizard.competitors}
+                loading={wizard.loadingStep === 2}
+              />
+            )}
 
-        {wizard.currentStep === 2 && (
-          <Step2Competitors
-            company={wizard.company}
-            competitors={wizard.competitors}
-            loading={wizard.loadingStep === 2}
-          />
-        )}
+            {wizard.currentStep === 3 && (
+              <Step3Campaigns campaigns={wizard.campaigns} loading={wizard.loadingStep === 3} />
+            )}
 
-        {wizard.currentStep === 3 && (
-          <Step3Campaigns campaigns={wizard.campaigns} loading={wizard.loadingStep === 3} />
-        )}
+            {wizard.currentStep === 4 && (
+              <Step4Customers customers={wizard.customers} loading={wizard.loadingStep === 4} />
+            )}
 
-        {wizard.currentStep === 4 && (
-          <Step4Customers customers={wizard.customers} loading={wizard.loadingStep === 4} />
-        )}
+            {wizard.currentStep === 5 && (
+              <Step5DecisionMakers
+                decisionMakers={wizard.decisionMakers}
+                loading={wizard.loadingStep === 5}
+              />
+            )}
 
-        {wizard.currentStep === 5 && (
-          <Step5DecisionMakers
-            decisionMakers={wizard.decisionMakers}
-            loading={wizard.loadingStep === 5}
-          />
-        )}
-
-        {wizard.currentStep === 6 && (
-          <Step6WriteEmails emails={wizard.emails} loading={wizard.loadingStep === 6} />
+            {wizard.currentStep === 6 && (
+              <Step6WriteEmails emails={wizard.emails} loading={wizard.loadingStep === 6} />
+            )}
+          </>
         )}
       </div>
     </div>
