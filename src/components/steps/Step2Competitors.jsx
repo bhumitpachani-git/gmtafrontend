@@ -1,10 +1,19 @@
 import { motion } from "framer-motion";
 import Favicon from "../Favicon";
 import { domainOf } from "../../utils/url";
+import AgentLog from "../AgentLog";
+
+const AGENT_LOG = [
+  "searching for competitors...",
+  "checking their websites...",
+  "extracting competitor details...",
+];
 
 export default function Step2Competitors({ company, competitors, loading }) {
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
+      {(loading || !competitors) && <AgentLog step={2} lines={AGENT_LOG} />}
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-faint">

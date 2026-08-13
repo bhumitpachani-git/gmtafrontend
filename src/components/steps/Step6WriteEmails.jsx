@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
+import AgentLog from "../AgentLog";
 
 function initials(name) {
   return (name || "?")
@@ -34,33 +35,13 @@ const AGENT_LOG = [
   "personalizing the opener...",
 ];
 
-function AgentLog() {
-  const [index, setIndex] = useState(0);
-  useEffect(() => {
-    if (index >= AGENT_LOG.length - 1) return;
-    const t = setTimeout(() => setIndex((i) => i + 1), 1500);
-    return () => clearTimeout(t);
-  }, [index]);
-
-  return (
-    <div className="mb-4 flex flex-col gap-1.5 font-mono text-xs">
-      <div className="text-text-dim">Agent is working on step 6 of 6</div>
-      {AGENT_LOG.slice(0, index + 1).map((line, i) => (
-        <div key={i} className={i < index ? "text-text-faint" : "text-accent"}>
-          {i < index ? "✓" : "›"} {line}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function Step6WriteEmails({ emails, loading }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (loading || !emails) {
     return (
       <div className="mx-auto max-w-5xl px-6 py-10">
-        <AgentLog />
+        <AgentLog step={6} lines={AGENT_LOG} />
         <div className="flex flex-col gap-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-16 animate-pulse rounded-lg bg-panel-2" />

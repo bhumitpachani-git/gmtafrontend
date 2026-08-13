@@ -1,11 +1,20 @@
 import { display } from "../../utils/text";
 import { domainOf } from "../../utils/url";
 import Favicon from "../Favicon";
+import AgentLog from "../AgentLog";
+
+const AGENT_LOG = [
+  "searching for potential customers...",
+  "checking company websites...",
+  "collecting company details...",
+  "filtering out dead links...",
+];
 
 export default function Step4Customers({ customers, loading }) {
   if (loading || !customers) {
     return (
       <div className="mx-auto max-w-5xl px-6 py-10">
+        <AgentLog step={4} lines={AGENT_LOG} />
         <div className="flex flex-col gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-12 animate-pulse rounded-lg bg-panel-2" />

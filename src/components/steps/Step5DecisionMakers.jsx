@@ -1,4 +1,11 @@
 import { display } from "../../utils/text";
+import AgentLog from "../AgentLog";
+
+const AGENT_LOG = [
+  "searching each company's team...",
+  "cross-referencing job titles...",
+  "verifying LinkedIn profiles...",
+];
 
 function initials(name) {
   return (name || "?")
@@ -13,6 +20,7 @@ export default function Step5DecisionMakers({ decisionMakers, loading }) {
   if (loading || !decisionMakers) {
     return (
       <div className="mx-auto max-w-5xl px-6 py-10">
+        <AgentLog step={5} lines={AGENT_LOG} />
         <div className="flex flex-col gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-12 animate-pulse rounded-lg bg-panel-2" />

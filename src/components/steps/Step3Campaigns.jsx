@@ -1,11 +1,19 @@
 import { motion } from "framer-motion";
+import AgentLog from "../AgentLog";
 
 const ICONS = ["🎯", "🏢", "💼", "📦", "🔧", "🚀"];
+
+const AGENT_LOG = [
+  "analyzing your customer base...",
+  "identifying market segments...",
+  "defining campaign criteria...",
+];
 
 export default function Step3Campaigns({ campaigns, loading }) {
   if (loading || !campaigns) {
     return (
       <div className="mx-auto max-w-4xl px-6 py-10">
+        <AgentLog step={3} lines={AGENT_LOG} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-48 animate-pulse rounded-xl bg-panel-2" />
