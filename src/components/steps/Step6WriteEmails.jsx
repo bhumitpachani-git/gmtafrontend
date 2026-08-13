@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import AgentLog from "../AgentLog";
 
 function initials(name) {
   return (name || "?")
@@ -28,43 +27,41 @@ function SourceBadge({ source }) {
   return <span className={`rounded-full px-2 py-0.5 text-[11px] ${style.cls}`}>{style.label}</span>;
 }
 
-const AGENT_LOG = [
-  "picking the hottest lead...",
-  "reading their company signals...",
-  "drafting the first email...",
-  "personalizing the opener...",
-];
+function PendingBadge() {
+  return (
+    <span className="flex items-center gap-1 rounded-full bg-panel-2 px-2 py-0.5 text-[11px] text-text-faint">
+      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+      writing...
+    </span>
+  );
+}
 
-export default function Step6WriteEmails({ emails, loading }) {
+// people is known immediately from step 5's results; emails grows one entry at a time as
+// each person's write finishes, so the list and the selected draft update independently
+// instead of waiting on one long batch job that can time out with many people queued up.
+export default function Step6WriteEmails({ people, emails, loading }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  if (loading || !emails) {
-    return (
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <AgentLog step={6} lines={AGENT_LOG} />
-        <div className="flex flex-col gap-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-lg bg-panel-2" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (emails.length === 0) {
+  if (!people || people.length === 0) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center text-text-dim">
-        No usable contact was found for the selected people — nothing to email.
+        No decision-makers were carried into this step — nothing to email.
       </div>
     );
   }
 
-  const active = emails[activeIndex] || emails[0];
+  const rows = people.map((p, i) => ({ person: p, result: emails?.[i] || null, done: i < (emails?.length || 0) }));
+  const active = rows[activeIndex] || rows[0];
 
   return (
     <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-6 py-10 md:grid-cols-[320px_1fr]">
       <div className="flex flex-col gap-2 overflow-y-auto">
-        {emails.map((p, i) => (
+        {loading && (
+          <div className="mb-1 font-mono text-xs text-text-dim">
+            Writing emails — {emails?.length || 0}/{people.length} done
+          </div>
+        )}
+        {rows.map((row, i) => (
           <button
             key={i}
             onClick={() => setActiveIndex(i)}
@@ -74,21 +71,23 @@ export default function Step6WriteEmails({ emails, loading }) {
           >
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-panel-2 text-[11px] font-semibold text-text-dim">
-                {initials(p.personName)}
+                {initials(row.person.personName)}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-text">
-                  {p.personName}
-                  {p.personLinkedIn && <span className="ml-1 text-text-faint">in</span>}
+                  {row.person.personName}
+                  {row.person.personLinkedIn && <span className="ml-1 text-text-faint">in</span>}
                 </div>
                 <div className="truncate text-xs text-text-faint">
-                  {p.personTitle} · {p.company}
+                  {row.person.personTitle} · {row.person.company}
                 </div>
               </div>
             </div>
             <div className="mt-2 flex items-center justify-between">
-              <SourceBadge source={p.emailSource} />
-              {p.email && <span className="truncate text-[11px] text-text-faint">{p.email}</span>}
+              {row.done ? <SourceBadge source={row.result?.emailSource} /> : <PendingBadge />}
+              {row.done && row.result?.email && (
+                <span className="truncate text-[11px] text-text-faint">{row.result.email}</span>
+              )}
             </div>
           </button>
         ))}
@@ -102,21 +101,27 @@ export default function Step6WriteEmails({ emails, loading }) {
       >
         <div className="flex items-center gap-3 border-b border-border pb-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-panel-2 text-sm font-semibold text-text-dim">
-            {initials(active.personName)}
+            {initials(active.person.personName)}
           </div>
           <div>
-            <div className="font-medium text-text">{active.personName}</div>
+            <div className="font-medium text-text">{active.person.personName}</div>
             <div className="text-xs text-text-faint">
-              {active.personTitle} · {active.company}
+              {active.person.personTitle} · {active.person.company}
             </div>
           </div>
         </div>
 
-        {active.outreachEmail ? (
+        {!active.done ? (
+          <div className="mt-4 flex flex-col gap-2">
+            <div className="h-4 w-2/3 animate-pulse rounded bg-panel-2" />
+            <div className="h-24 animate-pulse rounded bg-panel-2" />
+            <p className="text-xs text-text-faint">Writing this email…</p>
+          </div>
+        ) : active.result?.outreachEmail ? (
           <div className="mt-4">
-            <div className="text-sm font-semibold text-text">{active.outreachEmail.subject}</div>
+            <div className="text-sm font-semibold text-text">{active.result.outreachEmail.subject}</div>
             <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-text-dim">
-              {active.outreachEmail.body}
+              {active.result.outreachEmail.body}
             </p>
             <p className="mt-4 text-xs text-text-faint">
               AI-generated draft — review before sending. Not sent automatically.

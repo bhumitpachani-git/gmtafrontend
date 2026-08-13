@@ -37,7 +37,8 @@ export function useWizard() {
   const [campaigns, setCampaigns] = useState(null);
   const [customers, setCustomers] = useState(null);
   const [decisionMakers, setDecisionMakers] = useState(null);
-  const [emails, setEmails] = useState(null);
+  const [emailPeople, setEmailPeople] = useState(null); // the people step 6 is writing to, known up front
+  const [emails, setEmails] = useState(null); // grows one entry at a time as each write finishes
 
   const [loadingStep, setLoadingStep] = useState(null);
   const [error, setError] = useState(null);
@@ -133,20 +134,54 @@ export function useWizard() {
 
     setLoadingStep(6);
     setCurrentStep(6);
-    try {
-      const personIndexes = decisionMakersResult
-        .map((p, i) => ({ p, i }))
-        .filter(({ p }) => p.personName)
-        .slice(0, MAX_PEOPLE_FOR_EMAILS)
-        .map(({ i }) => i);
-      const { jobId } = await startEmails(sid, { personIndexes });
-      const result = await pollJob(jobId);
-      setEmails(result.emails);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoadingStep(null);
+    const personIndexes = decisionMakersResult
+      .map((p, i) => ({ p, i }))
+      .filter(({ p }) => p.personName)
+      .slice(0, MAX_PEOPLE_FOR_EMAILS)
+      .map(({ i }) => i);
+    setEmailPeople(personIndexes.map((i) => decisionMakersResult[i]));
+    setEmails([]);
+
+    // One person at a time instead of one batch job for everyone: shows the list
+    // immediately, fills in each draft as it finishes instead of one long wait, and
+    // means a single person's write failing doesn't discard everyone else's.
+    for (const idx of personIndexes) {
+      try {
+        const { jobId } = await startEmails(sid, { personIndexes: [idx] });
+        const result = await pollJob(jobId);
+        // The backend drops people with neither phone nor email from its result —
+        // fall back to a "no contact found" placeholder so this person still gets a row.
+        const found = result.emails[0] || {
+          personIndex: idx,
+          company: decisionMakersResult[idx].company,
+          personName: decisionMakersResult[idx].personName,
+          personTitle: decisionMakersResult[idx].personTitle,
+          personLinkedIn: decisionMakersResult[idx].personLinkedIn || null,
+          email: null,
+          emailSource: null,
+          phone: null,
+          outreachEmail: null,
+        };
+        setEmails((prev) => [...prev, found]);
+      } catch (err) {
+        setEmails((prev) => [
+          ...prev,
+          {
+            personIndex: idx,
+            company: decisionMakersResult[idx].company,
+            personName: decisionMakersResult[idx].personName,
+            personTitle: decisionMakersResult[idx].personTitle,
+            personLinkedIn: decisionMakersResult[idx].personLinkedIn || null,
+            email: null,
+            emailSource: null,
+            phone: null,
+            outreachEmail: null,
+            error: err.message,
+          },
+        ]);
+      }
     }
+    setLoadingStep(null);
   }, []);
 
   return {
@@ -161,6 +196,7 @@ export function useWizard() {
     campaigns,
     customers,
     decisionMakers,
+    emailPeople,
     emails,
     runAll,
   };

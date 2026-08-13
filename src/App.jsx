@@ -78,7 +78,11 @@ function App() {
             )}
 
             {wizard.currentStep === 6 && (
-              <Step6WriteEmails emails={wizard.emails} loading={wizard.loadingStep === 6} />
+              <Step6WriteEmails
+                people={wizard.emailPeople}
+                emails={wizard.emails}
+                loading={wizard.loadingStep === 6}
+              />
             )}
           </>
         )}
