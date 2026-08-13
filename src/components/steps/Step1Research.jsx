@@ -91,7 +91,7 @@ function CompanyCard({ company, url }) {
   );
 }
 
-export default function Step1Research({ url, company, loading, onNext }) {
+export default function Step1Research({ url, company, loading }) {
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
       <AnimatePresence mode="wait">
@@ -102,12 +102,6 @@ export default function Step1Research({ url, company, loading, onNext }) {
         ) : (
           <motion.div key="result">
             <CompanyCard company={company} url={url} />
-            <button
-              onClick={onNext}
-              className="mt-6 w-full rounded-lg bg-accent py-3 font-semibold text-black transition hover:bg-accent-2"
-            >
-              Continue to competitors →
-            </button>
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,19 +1,8 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 
 const ICONS = ["🎯", "🏢", "💼", "📦", "🔧", "🚀"];
 
-export default function Step3Campaigns({ campaigns, loading, onNext }) {
-  const [selected, setSelected] = useState(new Set());
-
-  function toggle(i) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(i) ? next.delete(i) : next.add(i);
-      return next;
-    });
-  }
-
+export default function Step3Campaigns({ campaigns, loading }) {
   if (loading || !campaigns) {
     return (
       <div className="mx-auto max-w-4xl px-6 py-10">
@@ -28,24 +17,18 @@ export default function Step3Campaigns({ campaigns, loading, onNext }) {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
-      <div className="mb-4 text-sm text-text-dim">
-        Select which customer segments to search for
-      </div>
+      <div className="mb-4 text-sm text-text-dim">Customer segments found</div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {campaigns.map((c, i) => {
-          const isSelected = selected.has(i);
           return (
-            <motion.button
+            <motion.div
               key={i}
               data-testid="campaign-card"
-              onClick={() => toggle(i)}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className={`rounded-xl border p-5 text-left transition ${
-                isSelected ? "border-accent bg-panel" : "border-border bg-panel hover:border-text-faint"
-              }`}
+              className="rounded-xl border border-border bg-panel p-5 text-left"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -85,18 +68,10 @@ export default function Step3Campaigns({ campaigns, loading, onNext }) {
                   </ul>
                 </div>
               )}
-            </motion.button>
+            </motion.div>
           );
         })}
       </div>
-
-      <button
-        onClick={() => onNext([...selected])}
-        disabled={selected.size === 0}
-        className="mt-8 w-full rounded-lg bg-accent py-3 font-semibold text-black transition hover:bg-accent-2 disabled:opacity-40"
-      >
-        Find customers for {selected.size || ""} selected campaign{selected.size === 1 ? "" : "s"} →
-      </button>
     </div>
   );
 }

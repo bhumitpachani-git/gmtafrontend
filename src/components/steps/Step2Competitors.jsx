@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import Favicon from "../Favicon";
 import { domainOf } from "../../utils/url";
 
-export default function Step2Competitors({ company, competitors, loading, onNext }) {
+export default function Step2Competitors({ company, competitors, loading }) {
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -55,15 +55,6 @@ export default function Step2Competitors({ company, competitors, loading, onNext
           </div>
         </div>
       </div>
-
-      {!loading && competitors && (
-        <button
-          onClick={onNext}
-          className="mt-8 w-full rounded-lg bg-accent py-3 font-semibold text-black transition hover:bg-accent-2"
-        >
-          Continue to campaigns →
-        </button>
-      )}
     </div>
   );
 }

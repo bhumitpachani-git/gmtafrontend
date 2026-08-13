@@ -16,7 +16,7 @@ function App() {
 
   async function handleStart(submittedUrl) {
     setUrl(submittedUrl);
-    await wizard.runResearch(submittedUrl);
+    await wizard.runAll(submittedUrl);
   }
 
   if (wizard.currentStep === 0) {
@@ -51,12 +51,7 @@ function App() {
         )}
 
         {wizard.currentStep === 1 && (
-          <Step1Research
-            url={url}
-            company={wizard.company}
-            loading={wizard.loadingStep === 1}
-            onNext={wizard.runCompetitors}
-          />
+          <Step1Research url={url} company={wizard.company} loading={wizard.loadingStep === 1} />
         )}
 
         {wizard.currentStep === 2 && (
@@ -64,31 +59,21 @@ function App() {
             company={wizard.company}
             competitors={wizard.competitors}
             loading={wizard.loadingStep === 2}
-            onNext={wizard.runCampaigns}
           />
         )}
 
         {wizard.currentStep === 3 && (
-          <Step3Campaigns
-            campaigns={wizard.campaigns}
-            loading={wizard.loadingStep === 3}
-            onNext={(campaignIndexes) => wizard.runCustomers({ campaignIndexes })}
-          />
+          <Step3Campaigns campaigns={wizard.campaigns} loading={wizard.loadingStep === 3} />
         )}
 
         {wizard.currentStep === 4 && (
-          <Step4Customers
-            customers={wizard.customers}
-            loading={wizard.loadingStep === 4}
-            onNext={(customerIndexes) => wizard.runDecisionMakers({ customerIndexes })}
-          />
+          <Step4Customers customers={wizard.customers} loading={wizard.loadingStep === 4} />
         )}
 
         {wizard.currentStep === 5 && (
           <Step5DecisionMakers
             decisionMakers={wizard.decisionMakers}
             loading={wizard.loadingStep === 5}
-            onNext={(personIndexes) => wizard.runEmails({ personIndexes })}
           />
         )}
 

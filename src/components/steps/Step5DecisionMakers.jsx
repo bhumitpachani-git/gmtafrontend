@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { display } from "../../utils/text";
 
 function initials(name) {
@@ -10,17 +9,7 @@ function initials(name) {
     .toUpperCase();
 }
 
-export default function Step5DecisionMakers({ decisionMakers, loading, onNext }) {
-  const [selected, setSelected] = useState(new Set());
-
-  function toggle(i) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(i) ? next.delete(i) : next.add(i);
-      return next;
-    });
-  }
-
+export default function Step5DecisionMakers({ decisionMakers, loading }) {
   if (loading || !decisionMakers) {
     return (
       <div className="mx-auto max-w-5xl px-6 py-10">
@@ -55,7 +44,6 @@ export default function Step5DecisionMakers({ decisionMakers, loading, onNext })
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs uppercase tracking-wide text-text-faint">
-              <th className="w-10 px-4 py-3" />
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Job title</th>
               <th className="px-4 py-3">Company</th>
@@ -64,14 +52,6 @@ export default function Step5DecisionMakers({ decisionMakers, loading, onNext })
           <tbody>
             {usable.map((p) => (
               <tr key={p.originalIndex} className="border-b border-border last:border-0 hover:bg-panel">
-                <td className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(p.originalIndex)}
-                    onChange={() => toggle(p.originalIndex)}
-                    className="accent-emerald-500"
-                  />
-                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-panel-2 text-[11px] font-semibold text-text-dim">
@@ -98,14 +78,6 @@ export default function Step5DecisionMakers({ decisionMakers, loading, onNext })
           </tbody>
         </table>
       </div>
-
-      <button
-        onClick={() => onNext([...selected])}
-        disabled={selected.size === 0}
-        className="mt-6 w-full rounded-lg bg-accent py-3 font-semibold text-black transition hover:bg-accent-2 disabled:opacity-40"
-      >
-        Write emails to {selected.size || ""} selected person{selected.size === 1 ? "" : "s"} →
-      </button>
     </div>
   );
 }
