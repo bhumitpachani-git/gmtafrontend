@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import AgentLog from "../AgentLog";
+import { useStaggeredReveal } from "../../hooks/useStaggeredReveal";
 
 const ICONS = ["🎯", "🏢", "💼", "📦", "🔧", "🚀"];
 
@@ -10,6 +11,8 @@ const AGENT_LOG = [
 ];
 
 export default function Step3Campaigns({ campaigns, loading }) {
+  const visible = useStaggeredReveal(campaigns, 250);
+
   if (!campaigns) {
     return (
       <div className="mx-auto max-w-4xl px-6 py-10">
@@ -25,17 +28,16 @@ export default function Step3Campaigns({ campaigns, loading }) {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
-      <div className="mb-4 text-sm text-text-dim">Customer segments found</div>
+      <div className="mb-4 text-sm text-text-dim">Customer segments found · {campaigns.length}</div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {campaigns.map((c, i) => {
+        {visible.map((c, i) => {
           return (
             <motion.div
               key={i}
               data-testid="campaign-card"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
               className="rounded-xl border border-border bg-panel p-5 text-left"
             >
               <div className="flex items-center justify-between">
@@ -79,6 +81,10 @@ export default function Step3Campaigns({ campaigns, loading }) {
             </motion.div>
           );
         })}
+        {visible.length < campaigns.length &&
+          Array.from({ length: campaigns.length - visible.length }).map((_, i) => (
+            <div key={`pending-${i}`} className="h-48 animate-pulse rounded-xl bg-panel-2" />
+          ))}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import Favicon from "../Favicon";
 import { domainOf } from "../../utils/url";
 import AgentLog from "../AgentLog";
+import { useStaggeredReveal } from "../../hooks/useStaggeredReveal";
 
 const AGENT_LOG = [
   "searching for competitors...",
@@ -10,6 +11,8 @@ const AGENT_LOG = [
 ];
 
 export default function Step2Competitors({ company, competitors, loading }) {
+  const visible = useStaggeredReveal(competitors, 180);
+
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
       {!competitors && <AgentLog step={2} lines={AGENT_LOG} />}
@@ -46,21 +49,25 @@ export default function Step2Competitors({ company, competitors, loading }) {
               ? Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="h-10 animate-pulse rounded-lg bg-panel-2" />
                 ))
-              : competitors.map((c, i) => (
+              : visible.map((c, i) => (
                   <motion.a
                     key={i}
                     href={c.website}
                     target="_blank"
                     rel="noreferrer"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.03 }}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-2 rounded-lg bg-panel-2 px-3 py-2.5 text-sm text-text hover:bg-panel"
                   >
                     <Favicon url={c.website} name={c.name} size={16} className="rounded-sm" />
                     <span className="truncate">{domainOf(c.website)}</span>
                   </motion.a>
                 ))}
+            {competitors &&
+              visible.length < competitors.length &&
+              Array.from({ length: competitors.length - visible.length }).map((_, i) => (
+                <div key={`pending-${i}`} className="h-10 animate-pulse rounded-lg bg-panel-2" />
+              ))}
           </div>
         </div>
       </div>

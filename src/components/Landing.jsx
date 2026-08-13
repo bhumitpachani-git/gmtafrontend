@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Favicon from "./Favicon";
 import { domainOf } from "../utils/url";
 import { searchCompaniesByName } from "../api/pipeline";
+import { useStaggeredReveal } from "../hooks/useStaggeredReveal";
 
 function normalizeUrl(input) {
   const trimmed = input.trim();
@@ -66,6 +67,7 @@ export default function Landing({ onSubmit, loading, error }) {
   }
 
   const showDropdown = value.trim().length >= 2 && !loading;
+  const visibleResults = useStaggeredReveal(results, 220);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
@@ -121,11 +123,13 @@ export default function Landing({ onSubmit, loading, error }) {
               )}
 
               {!searching &&
-                results?.map((c, i) => (
-                  <button
+                visibleResults.map((c, i) => (
+                  <motion.button
                     key={i}
                     type="button"
                     onClick={() => selectResult(c)}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="flex w-full items-center gap-3 border-b border-border px-4 py-3 text-left last:border-0 hover:bg-panel-2"
                   >
                     <Favicon url={c.website} name={c.name} size={28} />
@@ -138,7 +142,7 @@ export default function Landing({ onSubmit, loading, error }) {
                         <div className="truncate text-xs text-text-dim">{c.description}</div>
                       )}
                     </div>
-                  </button>
+                  </motion.button>
                 ))}
             </motion.div>
           )}
