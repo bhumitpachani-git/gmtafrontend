@@ -10,7 +10,7 @@ const AGENT_LOG = [
 ];
 
 export default function Step3Campaigns({ campaigns, loading }) {
-  if (loading || !campaigns) {
+  if (!campaigns) {
     return (
       <div className="mx-auto max-w-4xl px-6 py-10">
         <AgentLog step={3} lines={AGENT_LOG} />

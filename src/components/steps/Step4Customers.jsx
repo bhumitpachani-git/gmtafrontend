@@ -10,8 +10,11 @@ const AGENT_LOG = [
   "filtering out dead links...",
 ];
 
+// Rows stream in live via SSE as the backend finds each one, so this renders whatever's
+// arrived so far immediately rather than waiting for `loading` to clear — the agent log
+// only covers the gap before the very first result shows up.
 export default function Step4Customers({ customers, loading }) {
-  if (loading || !customers) {
+  if (!customers || (customers.length === 0 && loading)) {
     return (
       <div className="mx-auto max-w-5xl px-6 py-10">
         <AgentLog step={4} lines={AGENT_LOG} />
@@ -62,6 +65,13 @@ export default function Step4Customers({ customers, loading }) {
           </tbody>
         </table>
       </div>
+
+      {loading && (
+        <div className="mt-3 flex items-center gap-1.5 font-mono text-xs text-text-faint">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+          still searching for more...
+        </div>
+      )}
     </div>
   );
 }

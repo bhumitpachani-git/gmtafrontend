@@ -12,7 +12,7 @@ const AGENT_LOG = [
 export default function Step2Competitors({ company, competitors, loading }) {
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
-      {(loading || !competitors) && <AgentLog step={2} lines={AGENT_LOG} />}
+      {!competitors && <AgentLog step={2} lines={AGENT_LOG} />}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
@@ -34,7 +34,7 @@ export default function Step2Competitors({ company, competitors, loading }) {
         <div>
           <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-text-faint">
             <span>Competitors</span>
-            {!loading && competitors && (
+            {competitors && (
               <span className="rounded-full border border-border px-2 py-0.5 text-text-dim normal-case">
                 ✓ {competitors.length} found
               </span>
@@ -42,7 +42,7 @@ export default function Step2Competitors({ company, competitors, loading }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            {loading || !competitors
+            {!competitors
               ? Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="h-10 animate-pulse rounded-lg bg-panel-2" />
                 ))

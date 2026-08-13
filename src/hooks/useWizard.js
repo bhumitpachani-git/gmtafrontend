@@ -7,6 +7,7 @@ import {
   startCustomers,
   startDecisionMakers,
   startEmails,
+  openSessionStream,
 } from "../api/pipeline";
 
 const STEP_TITLES = [
@@ -50,17 +51,42 @@ export function useWizard() {
   const runAll = useCallback(async (url) => {
     setError(null);
     setLoadingStep(1);
+    setCompetitors(null);
+    setCampaigns(null);
+    setCustomers(null);
+    setDecisionMakers(null);
+
     let sid;
+    let closeStream = () => {};
+
     try {
       const { sessionId: newSid, jobId } = await startResearch(url);
       sid = newSid;
       setSessionId(sid);
       setCurrentStep(1);
+
+      // One SSE connection for the whole run: fills competitors/customers/decision-makers
+      // in live as the backend finds each one, instead of only seeing them once a step's
+      // job/poll cycle finishes. The step's own poll result (below) still lands afterward
+      // and is the authoritative value — this just gets the list on screen sooner.
+      closeStream = openSessionStream(sid, (event) => {
+        if (event.step === "competitors" && event.type === "result") {
+          setCompetitors(event.items);
+        } else if (event.step === "campaigns" && event.type === "result") {
+          setCampaigns(event.items);
+        } else if (event.step === "customers" && event.type === "item") {
+          setCustomers((prev) => [...(prev || []), event.item]);
+        } else if (event.step === "decisionMakers" && event.type === "item") {
+          setDecisionMakers((prev) => [...(prev || []), event.item]);
+        }
+      });
+
       const result = await pollJob(jobId, { onTick: (job) => setJobStage(job.stage || null) });
       setCompany(result.company);
     } catch (err) {
       setError(err.message);
       setLoadingStep(null);
+      closeStream();
       return;
     }
     setLoadingStep(null);
@@ -74,6 +100,7 @@ export function useWizard() {
     } catch (err) {
       setError(err.message);
       setLoadingStep(null);
+      closeStream();
       return;
     }
     setLoadingStep(null);
@@ -89,12 +116,14 @@ export function useWizard() {
     } catch (err) {
       setError(err.message);
       setLoadingStep(null);
+      closeStream();
       return;
     }
     setLoadingStep(null);
 
     setLoadingStep(4);
     setCurrentStep(4);
+    setCustomers([]);
     let customersResult;
     try {
       const campaignIndexes = campaignsResult.slice(0, MAX_CAMPAIGNS).map((_, i) => i);
@@ -108,12 +137,14 @@ export function useWizard() {
     } catch (err) {
       setError(err.message);
       setLoadingStep(null);
+      closeStream();
       return;
     }
     setLoadingStep(null);
 
     setLoadingStep(5);
     setCurrentStep(5);
+    setDecisionMakers([]);
     let decisionMakersResult;
     try {
       const customerIndexes = customersResult
@@ -128,6 +159,7 @@ export function useWizard() {
     } catch (err) {
       setError(err.message);
       setLoadingStep(null);
+      closeStream();
       return;
     }
     setLoadingStep(null);
@@ -182,6 +214,7 @@ export function useWizard() {
       }
     }
     setLoadingStep(null);
+    closeStream();
   }, []);
 
   return {

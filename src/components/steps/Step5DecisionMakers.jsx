@@ -16,8 +16,10 @@ function initials(name) {
     .toUpperCase();
 }
 
+// Rows stream in live via SSE as the backend finds each one, so this renders whatever's
+// arrived so far immediately rather than waiting for `loading` to clear.
 export default function Step5DecisionMakers({ decisionMakers, loading }) {
-  if (loading || !decisionMakers) {
+  if (!decisionMakers || (decisionMakers.length === 0 && loading)) {
     return (
       <div className="mx-auto max-w-5xl px-6 py-10">
         <AgentLog step={5} lines={AGENT_LOG} />
@@ -34,7 +36,7 @@ export default function Step5DecisionMakers({ decisionMakers, loading }) {
     .map((p, originalIndex) => ({ ...p, originalIndex }))
     .filter((p) => p.personName);
 
-  if (usable.length === 0) {
+  if (usable.length === 0 && !loading) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
         <p className="text-text-dim">
@@ -86,6 +88,13 @@ export default function Step5DecisionMakers({ decisionMakers, loading }) {
           </tbody>
         </table>
       </div>
+
+      {loading && (
+        <div className="mt-3 flex items-center gap-1.5 font-mono text-xs text-text-faint">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+          still searching for more...
+        </div>
+      )}
     </div>
   );
 }

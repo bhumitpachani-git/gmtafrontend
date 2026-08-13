@@ -64,6 +64,22 @@ export function getSession(sessionId) {
   return getJson(`/pipeline/${sessionId}`);
 }
 
+// One SSE connection covers every step for this session — the backend pushes each
+// competitor/customer/decision-maker the moment a step handler finds it, so the UI can
+// fill lists in live instead of only seeing them once a step's job/poll cycle finishes.
+// Returns a close() function; onEvent receives { step, type, item|items } payloads.
+export function openSessionStream(sessionId, onEvent) {
+  const source = new EventSource(`${BASE_URL}/pipeline/${sessionId}/stream`);
+  source.onmessage = (msg) => {
+    try {
+      onEvent(JSON.parse(msg.data));
+    } catch {
+      // ignore malformed/heartbeat frames
+    }
+  };
+  return () => source.close();
+}
+
 // Real web search (a few seconds, not instant) — pass an AbortSignal so a stale in-flight
 // search from an earlier keystroke can be cancelled once the user keeps typing.
 export function searchCompaniesByName(query, signal) {
