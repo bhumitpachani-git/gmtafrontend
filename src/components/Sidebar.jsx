@@ -123,7 +123,7 @@ function CampaignsSummary({ campaigns }) {
 
 export default function Sidebar({ currentStep, company, url, competitors, campaigns }) {
   return (
-    <aside className="w-72 shrink-0 overflow-y-auto border-r border-border p-5 hidden md:block">
+    <aside className="hidden h-full w-72 shrink-0 overflow-y-auto border-r border-border p-5 md:block">
       {company && <CompanySummary company={company} url={url} />}
       {currentStep > 2 && <CompetitorsSummary competitors={competitors} />}
       {currentStep > 3 && <CampaignsSummary campaigns={campaigns} />}

@@ -30,7 +30,7 @@ function App() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar
         currentStep={wizard.currentStep}
         company={wizard.company}
@@ -39,7 +39,7 @@ function App() {
         campaigns={wizard.campaigns}
       />
 
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         <StepHeader currentStep={wizard.currentStep} />
 
         {wizard.error && (
